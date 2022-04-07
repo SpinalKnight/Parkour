@@ -6,31 +6,43 @@ public class PlayerMovement : MonoBehaviour
 {
     public CharacterController controller;
 
+    [Header("Basic Game Variables")]
     public float speed = 14f;
     public float gravity = -30f;
     public float jumpHeight = 3f;
     public int jumpI = 1;
     public float pushPower = 0.001f;
-    [SerializeField] float runAcceleration = 0.5f;
-
-    public Transform GroundCheck;
+    Vector3 velocity;
+    
+    [Header("Grounded")]
     public float groundDistance = 0.4f;
     public LayerMask groundMask;
+    bool isGrounded;
+    public Transform GroundCheck;
 
+    [Header("Wall Jump")]
     public float wallDistance = 1f;
     public LayerMask wallMask;
     bool touchingWall;
     public float wallJumpLeftI = 1000f;
     public float wallJumpRightI = 1000f;
 
+    [Header("Super Bounce")]
+    public float superBounceDistance = 1f;
+    public LayerMask superBounceMask;
+    bool touchingSuperBounce;
 
-    Vector3 velocity;
-    bool isGrounded;
+    [Header("Bouncy")]
+    public LayerMask bouncyMask;
+    bool isTouchingBouncy;
+
 
     // Update is called once per frame
     void Update()
     {
+        isTouchingBouncy = Physics.CheckSphere(GroundCheck.position, groundDistance, bouncyMask);
         isGrounded = Physics.CheckSphere(GroundCheck.position, groundDistance, groundMask);
+        touchingSuperBounce = Physics.CheckSphere(GroundCheck.position, superBounceDistance, superBounceMask);
         touchingWall = Physics.CheckSphere(GroundCheck.position, wallDistance, wallMask);
         float x = Input.GetAxis("Horizontal");
         float z = Input.GetAxis("Vertical");
@@ -39,6 +51,15 @@ public class PlayerMovement : MonoBehaviour
 
         controller.Move(move * speed * Time.deltaTime);
 
+        if (isTouchingBouncy)
+        {
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity * -velocity.y * 0.2f);
+        }
+
+        if(touchingSuperBounce && Input.GetButtonDown("Jump"))
+        {
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity * 4);
+        }
         if (touchingWall)
         {
 
